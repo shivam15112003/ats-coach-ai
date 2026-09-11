@@ -127,18 +127,6 @@ if go:
         tailored_resume = ai_data.get("tailored_resume", "")
         tailored_cover = ai_data.get("tailored_cover", "")
         changed = ai_data.get("what_changed", [])
-        if not cover_text.strip():
-            c = {
-                "score": 0,
-                "grade": "Not uploaded",
-                "strengths": [],
-                "weaknesses": [],
-                "suggestions": [],
-                "matched": [],
-                "missing": [],
-                "breakdown": {},
-                "stats": {},
-            }
     else:
         r = eng.score_resume(resume_text, jd)
         c = eng.analyze_cover(cover_text, jd)
@@ -151,25 +139,6 @@ if go:
             "Restructured into single-column ATS-safe headings: Summary, Skills, Experience, Education.",
             f"Rule-engine detail: keyword match {r['breakdown'].get('Keyword match', 0)}, formatting {r['breakdown'].get('Formatting / ATS', 0)}, impact {r['breakdown'].get('Impact evidence', 0)}.",
         ]
-
-    with st.spinner("Scoring tailored documents..."):
-        r_after = (
-            eng.score_resume(tailored_resume, jd) if tailored_resume.strip() else None
-        )
-        c_after = (
-            eng.analyze_cover(tailored_cover, jd) if tailored_cover.strip() else None
-        )
-    if ai_data:
-        r_base_score = eng.score_resume(resume_text, jd)["score"]
-    else:
-        r_base_score = r["score"]
-    if cover_text.strip():
-        if ai_data:
-            c_base_score = eng.analyze_cover(cover_text, jd)["score"]
-        else:
-            c_base_score = c["score"]
-    else:
-        c_base_score = None
 
     st.subheader("Match dashboard — what the numbers mean")
     st.caption(
@@ -224,33 +193,6 @@ if go:
             "Keyword match: share of JD terms found. Skill coverage: known tech skills. Formatting: length, bullets, sections, contact. Impact: numbers + action verbs."
         )
 
-    st.subheader("Improvement — before vs after tailoring")
-    st.caption(
-        "Tailored documents are re-scored with the rule engine so before/after use the same scale."
-    )
-    i1, i2 = st.columns(2)
-    with i1:
-        if r_after:
-            st.metric(
-                "Tailored resume score",
-                f"{r_after['score']}/100",
-                delta=f"{r_after['score'] - r_base_score:+d} vs original",
-            )
-    with i2:
-        if c_after:
-            if c_base_score is None:
-                st.metric(
-                    "Tailored cover-letter score",
-                    f"{c_after['score']}/100",
-                    delta="new (no original uploaded)",
-                )
-            else:
-                st.metric(
-                    "Tailored cover-letter score",
-                    f"{c_after['score']}/100",
-                    delta=f"{c_after['score'] - c_base_score:+d} vs original",
-                )
-
     t1, t2, t3, t4, t5 = st.tabs(
         [
             "Resume analysis",
@@ -295,44 +237,42 @@ if go:
                 "Day 7: have a friend read it for 30 seconds — whatever they miss, clarify."
             )
     with t2:
-        if not cover_text.strip():
+        if not cover_text:
             st.info(
-                "No cover letter uploaded, so there is nothing to analyze here. "
-                "Your generated cover letter (with its own score) is in the Tailored documents tab."
+                "You uploaded only a resume - review your generated cover letter in the Tailored documents tab."
             )
-        else:
-            c1, c2 = st.columns(2)
-            with c1:
-                st.subheader("Strengths")
-                for s in c["strengths"] or ["—"]:
-                    st.markdown(
-                        f"<div class='strength'>{s}</div>", unsafe_allow_html=True
-                    )
-            with c2:
-                st.subheader("Gaps to fix")
-                for w in c["weaknesses"] or ["—"]:
-                    st.markdown(f"<div class='weak'>{w}</div>", unsafe_allow_html=True)
-            if c.get("breakdown"):
-                st.subheader("Breakdown — relevance, structure, brevity")
-                for k, v in c["breakdown"].items():
-                    st.write(f"{k}: {v}/100")
-                    st.markdown(
-                        f"<div class='bar'><div style='width:{v}%'></div></div>",
-                        unsafe_allow_html=True,
-                    )
-                st.caption(
-                    "Relevance: JD keywords echoed. Structure: greeting, fit/proof/close, sign-off. Brevity: 250-350 words scores highest."
+        c1, c2 = st.columns(2)
+        with c1:
+            st.subheader("Strengths")
+            for s in c["strengths"] or ["—"]:
+                st.markdown(
+                    f"<div class='strength'>{s}</div>", unsafe_allow_html=True
                 )
-            with st.expander("Anatomy of a strong cover letter"):
-                st.write(
-                    "Para 1 (fit): role, company, your 2 strongest JD-matched skills."
+        with c2:
+            st.subheader("Gaps to fix")
+            for w in c["weaknesses"] or ["—"]:
+                st.markdown(f"<div class='weak'>{w}</div>", unsafe_allow_html=True)
+        if c.get("breakdown"):
+            st.subheader("Breakdown — relevance, structure, brevity")
+            for k, v in c["breakdown"].items():
+                st.write(f"{k}: {v}/100")
+                st.markdown(
+                    f"<div class='bar'><div style='width:{v}%'></div></div>",
+                    unsafe_allow_html=True,
                 )
-                st.write(
-                    "Para 2 (proof): one project with a metric that maps to the JD."
-                )
-                st.write(
-                    "Para 3 (close): why this team, call to action, contact details."
-                )
+            st.caption(
+                "Relevance: JD keywords echoed. Structure: greeting, fit/proof/close, sign-off. Brevity: 250-350 words scores highest."
+            )
+        with st.expander("Anatomy of a strong cover letter"):
+            st.write(
+                "Para 1 (fit): role, company, your 2 strongest JD-matched skills."
+            )
+            st.write(
+                "Para 2 (proof): one project with a metric that maps to the JD."
+            )
+            st.write(
+                "Para 3 (close): why this team, call to action, contact details."
+            )
     with t3:
         st.subheader("Tailored resume (TXT + DOCX — no PDF by request)")
         st.caption(
@@ -363,18 +303,6 @@ if go:
             "tailored_cover_letter.docx",
         )
     with t4:
-        st.subheader("Score improvement")
-        if r_after:
-            st.write(
-                f"Resume: {r_base_score} → {r_after['score']} ({r_after['score'] - r_base_score:+d})"
-            )
-        if c_after:
-            if c_base_score is None:
-                st.write(f"Cover letter: new document, scored {c_after['score']}/100.")
-            else:
-                st.write(
-                    f"Cover letter: {c_base_score} → {c_after['score']} ({c_after['score'] - c_base_score:+d})"
-                )
         st.subheader("What changed and why")
         for ch in changed:
             st.markdown(f"<div class='tip'>{ch}</div>", unsafe_allow_html=True)
