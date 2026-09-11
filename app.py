@@ -32,7 +32,7 @@ st.markdown(CSS, unsafe_allow_html=True)
 st.markdown(
     "<div class='hero'><h1>◎ ATS Coach AI</h1>"
     "<p>Applicant Tracking Systems reject ~75% of resumes before a human sees them. Upload your resume, paste any job description, optionally add your cover letter — get a detailed ATS diagnosis with scores, evidence, and tailored documents.</p>"
-    "<span class='badge'>No login needed</span><span class='badge'>Gemini API — no browser</span><span class='badge'>Private — files never stored</span></div>",
+    "<span class='badge'>No login needed</span><span class='badge'>Private — files never stored</span></div>",
     unsafe_allow_html=True,
 )
 
@@ -311,7 +311,7 @@ if go:
             )
             st.download_button(
                 "Download cover letter (.pdf)",
-                eng.to_pdf("Cover Letter", tailored_cover),
+                eng.to_pdf("Cover Letter", tailored_cover, kind="cover"),
                 "tailored_cover_letter.pdf",
             )
         else:

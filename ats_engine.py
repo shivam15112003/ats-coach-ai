@@ -428,18 +428,158 @@ tailored_resume: full ATS-friendly plain text resume. tailored_cover: 250-350 wo
     return json.loads(m.group(0))
 
 
-def to_pdf(title: str, body: str) -> bytes:
+LATEX_SECTIONS = {
+    "summary",
+    "professional summary",
+    "skills",
+    "technical skills",
+    "core skills",
+    "professional experience",
+    "work experience",
+    "experience",
+    "education",
+    "projects",
+    "certifications",
+    "achievements",
+    "contact",
+}
+
+
+def _latex_escape(s: str) -> str:
+    return (
+        s.replace("\\", "\\textbackslash{}")
+        .replace("&", "\\&")
+        .replace("%", "\\%")
+        .replace("$", "\\$")
+        .replace("#", "\\#")
+        .replace("_", "\\_")
+        .replace("{", "\\{")
+        .replace("}", "\\}")
+        .replace("~", "\\textasciitilde{}")
+        .replace("^", "\\textasciicircum{}")
+    )
+
+
+def _is_section(line: str) -> bool:
+    s = line.strip().strip(":").lower()
+    if s in LATEX_SECTIONS:
+        return True
+    return 2 < len(line.strip()) < 55 and line.strip().isupper()
+
+
+def _is_bullet(line: str) -> bool:
+    return line.lstrip().startswith(("•", "-", "*", "–"))
+
+
+def _bullet_text(line: str) -> str:
+    return line.lstrip().lstrip("•-*– ").strip()
+
+
+def resume_to_latex(body: str) -> str:
+    lines = [l.rstrip() for l in body.strip().splitlines()]
+    name = _latex_escape(lines[0].strip()) if lines else "Resume"
+    rest = lines[1:]
+    out = [
+        "\\documentclass[10pt]{article}",
+        "\\usepackage[margin=0.6in]{geometry}\\usepackage{enumitem}\\usepackage[hidelinks]{hyperref}",
+        "\\usepackage{titlesec}\\titleformat{\\section}{\\large\\bfseries}{}{0em}{}[\\titlerule]",
+        "\\setlength{\\parindent}{0pt}\\setlength{\\parskip}{3pt}",
+        "\\begin{document}",
+        f"{{\\LARGE\\bfseries {name}}}\\\\[-2pt]",
+    ]
+    in_list = False
+    for raw in rest:
+        line = raw.strip()
+        if not line:
+            if in_list:
+                out.append("\\end{itemize}")
+                in_list = False
+            out.append("\\vspace{2pt}")
+            continue
+        if _is_section(raw):
+            if in_list:
+                out.append("\\end{itemize}")
+                in_list = False
+            out.append(f"\\section*{{{_latex_escape(line.strip(':'))}}}")
+        elif _is_bullet(raw):
+            if not in_list:
+                out.append("\\begin{itemize}[leftmargin=*,itemsep=1pt]")
+                in_list = True
+            out.append(f"\\item {_latex_escape(_bullet_text(raw))}")
+        else:
+            if in_list:
+                out.append("\\end{itemize}")
+                in_list = False
+            out.append(_latex_escape(line) + "\\\\")
+    if in_list:
+        out.append("\\end{itemize}")
+    out.append("\\end{document}")
+    return "\n".join(out)
+
+
+def cover_to_latex(body: str) -> str:
+    paras = [p.strip() for p in body.strip().split("\n\n") if p.strip()]
+    out = [
+        "\\documentclass[11pt]{article}",
+        "\\usepackage[margin=1in]{geometry}",
+        "\\setlength{\\parindent}{0pt}\\setlength{\\parskip}{8pt}",
+        "\\begin{document}",
+    ]
+    for p in paras:
+        if "\n" in p and len(p) < 220:
+            for ln in p.split("\n"):
+                if ln.strip():
+                    out.append(_latex_escape(ln.strip()) + "\\\\")
+        else:
+            out.append(_latex_escape(" ".join(p.split())))
+            out.append("")
+    out.append("\\end{document}")
+    return "\n".join(out)
+
+
+def compile_latex(tex: str):
+    import shutil
+    import subprocess
+    import tempfile
+
+    if not shutil.which("pdflatex"):
+        return None
+    with tempfile.TemporaryDirectory(prefix="ats_tex_") as d:
+        src = os.path.join(d, "doc.tex")
+        with open(src, "w", encoding="utf-8") as f:
+            f.write(tex)
+        try:
+            subprocess.run(
+                ["pdflatex", "-interaction=nonstopmode", "-halt-on-error", "doc.tex"],
+                cwd=d,
+                capture_output=True,
+                timeout=60,
+            )
+        except Exception:
+            return None
+        pdf = os.path.join(d, "doc.pdf")
+        if os.path.exists(pdf):
+            with open(pdf, "rb") as f:
+                return f.read()
+    return None
+
+
+def to_pdf(title: str, body: str, kind: str = "resume") -> bytes:
+    tex = cover_to_latex(body) if kind == "cover" else resume_to_latex(body)
+    pdf = compile_latex(tex)
+    if pdf:
+        return pdf
     from fpdf import FPDF
 
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.multi_cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("Helvetica", "", 10)
+    doc = FPDF()
+    doc.set_auto_page_break(auto=True, margin=15)
+    doc.add_page()
+    doc.set_font("Helvetica", "B", 14)
+    doc.multi_cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
+    doc.set_font("Helvetica", "", 10)
     safe = body.encode("latin-1", errors="ignore").decode("latin-1")
-    pdf.multi_cell(0, 5, safe, new_x="LMARGIN", new_y="NEXT")
-    return bytes(pdf.output())
+    doc.multi_cell(0, 5, safe, new_x="LMARGIN", new_y="NEXT")
+    return bytes(doc.output())
 
 
 def to_docx(title: str, body: str) -> bytes:
