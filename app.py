@@ -288,6 +288,11 @@ if go:
             eng.to_docx("Resume", tailored_resume),
             "tailored_resume.docx",
         )
+        st.download_button(
+            "Download resume (.pdf)",
+            eng.to_pdf("Resume", tailored_resume),
+            "tailored_resume.pdf",
+        )
         if cover_text.strip():
             st.divider()
             st.subheader("Tailored cover letter")
@@ -303,6 +308,11 @@ if go:
                 "Download cover letter (.docx)",
                 eng.to_docx("Cover Letter", tailored_cover),
                 "tailored_cover_letter.docx",
+            )
+            st.download_button(
+                "Download cover letter (.pdf)",
+                eng.to_pdf("Cover Letter", tailored_cover),
+                "tailored_cover_letter.pdf",
             )
         else:
             st.caption("Upload a cover letter to also receive a tailored one.")

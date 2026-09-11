@@ -428,6 +428,20 @@ tailored_resume: full ATS-friendly plain text resume. tailored_cover: 250-350 wo
     return json.loads(m.group(0))
 
 
+def to_pdf(title: str, body: str) -> bytes:
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.multi_cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", "", 10)
+    safe = body.encode("latin-1", errors="ignore").decode("latin-1")
+    pdf.multi_cell(0, 5, safe, new_x="LMARGIN", new_y="NEXT")
+    return bytes(pdf.output())
+
+
 def to_docx(title: str, body: str) -> bytes:
     from docx import Document
 
