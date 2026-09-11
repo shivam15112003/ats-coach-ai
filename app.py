@@ -237,42 +237,41 @@ if go:
                 "Day 7: have a friend read it for 30 seconds — whatever they miss, clarify."
             )
     with t2:
-        if not cover_text:
-            st.info(
-                "You uploaded only a resume - review your generated cover letter in the Tailored documents tab."
-            )
-        c1, c2 = st.columns(2)
-        with c1:
-            st.subheader("Strengths")
-            for s in c["strengths"] or ["—"]:
-                st.markdown(
-                    f"<div class='strength'>{s}</div>", unsafe_allow_html=True
+        if not cover_text.strip():
+            st.info("No cover letter uploaded - nothing to analyze.")
+        else:
+            c1, c2 = st.columns(2)
+            with c1:
+                st.subheader("Strengths")
+                for s in c["strengths"] or ["—"]:
+                    st.markdown(
+                        f"<div class='strength'>{s}</div>", unsafe_allow_html=True
+                    )
+            with c2:
+                st.subheader("Gaps to fix")
+                for w in c["weaknesses"] or ["—"]:
+                    st.markdown(f"<div class='weak'>{w}</div>", unsafe_allow_html=True)
+            if c.get("breakdown"):
+                st.subheader("Breakdown — relevance, structure, brevity")
+                for k, v in c["breakdown"].items():
+                    st.write(f"{k}: {v}/100")
+                    st.markdown(
+                        f"<div class='bar'><div style='width:{v}%'></div></div>",
+                        unsafe_allow_html=True,
+                    )
+                st.caption(
+                    "Relevance: JD keywords echoed. Structure: greeting, fit/proof/close, sign-off. Brevity: 250-350 words scores highest."
                 )
-        with c2:
-            st.subheader("Gaps to fix")
-            for w in c["weaknesses"] or ["—"]:
-                st.markdown(f"<div class='weak'>{w}</div>", unsafe_allow_html=True)
-        if c.get("breakdown"):
-            st.subheader("Breakdown — relevance, structure, brevity")
-            for k, v in c["breakdown"].items():
-                st.write(f"{k}: {v}/100")
-                st.markdown(
-                    f"<div class='bar'><div style='width:{v}%'></div></div>",
-                    unsafe_allow_html=True,
+            with st.expander("Anatomy of a strong cover letter"):
+                st.write(
+                    "Para 1 (fit): role, company, your 2 strongest JD-matched skills."
                 )
-            st.caption(
-                "Relevance: JD keywords echoed. Structure: greeting, fit/proof/close, sign-off. Brevity: 250-350 words scores highest."
-            )
-        with st.expander("Anatomy of a strong cover letter"):
-            st.write(
-                "Para 1 (fit): role, company, your 2 strongest JD-matched skills."
-            )
-            st.write(
-                "Para 2 (proof): one project with a metric that maps to the JD."
-            )
-            st.write(
-                "Para 3 (close): why this team, call to action, contact details."
-            )
+                st.write(
+                    "Para 2 (proof): one project with a metric that maps to the JD."
+                )
+                st.write(
+                    "Para 3 (close): why this team, call to action, contact details."
+                )
     with t3:
         st.subheader("Tailored resume (TXT + DOCX — no PDF by request)")
         st.caption(
@@ -289,19 +288,24 @@ if go:
             eng.to_docx("Resume", tailored_resume),
             "tailored_resume.docx",
         )
-        st.divider()
-        st.subheader("Tailored cover letter")
-        st.text_area(
-            "cover_out", tailored_cover, height=260, label_visibility="collapsed"
-        )
-        st.download_button(
-            "Download cover letter (.txt)", tailored_cover, "tailored_cover_letter.txt"
-        )
-        st.download_button(
-            "Download cover letter (.docx)",
-            eng.to_docx("Cover Letter", tailored_cover),
-            "tailored_cover_letter.docx",
-        )
+        if cover_text.strip():
+            st.divider()
+            st.subheader("Tailored cover letter")
+            st.text_area(
+                "cover_out", tailored_cover, height=260, label_visibility="collapsed"
+            )
+            st.download_button(
+                "Download cover letter (.txt)",
+                tailored_cover,
+                "tailored_cover_letter.txt",
+            )
+            st.download_button(
+                "Download cover letter (.docx)",
+                eng.to_docx("Cover Letter", tailored_cover),
+                "tailored_cover_letter.docx",
+            )
+        else:
+            st.caption("Upload a cover letter to also receive a tailored one.")
     with t4:
         st.subheader("What changed and why")
         for ch in changed:
