@@ -1,0 +1,7 @@
+streamlit>=1.36
+pypdf>=4
+python-docx>=1.1
+google-genai>=1.0
+requests>=2.31
+beautifulsoup4>=4.12
+selenium>=4.20
