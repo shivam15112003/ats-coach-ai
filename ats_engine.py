@@ -428,51 +428,6 @@ tailored_resume: full ATS-friendly plain text resume. tailored_cover: 250-350 wo
     return json.loads(m.group(0))
 
 
-def fetch_jd_from_url(url: str, timeout: int = 15) -> str:
-    import requests
-    from bs4 import BeautifulSoup
-
-    headers = {"User-Agent": "Mozilla/5.0 (compatible; ATSCoachAI/1.0)"}
-    resp = requests.get(url.strip(), headers=headers, timeout=timeout)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
-    for tag in soup(["script", "style", "nav", "header", "footer"]):
-        tag.decompose()
-    text = soup.get_text(separator="\n")
-    lines = [ln.strip() for ln in text.splitlines() if len(ln.strip()) > 30]
-    return "\n".join(lines[:200])
-
-
-def _ats_prompt(resume: str, cover: str, jd: str, job_title: str, company: str) -> str:
-    return f"""{TRUTHFULNESS}
-
-JOB TITLE: {job_title}
-COMPANY: {company}
-JOB DESCRIPTION:
-{jd[:6000]}
-
-ORIGINAL RESUME:
-{resume[:8000]}
-
-ORIGINAL COVER LETTER:
-{(cover or "(none provided)")[:4000]}
-
-Return STRICT JSON with keys: resume_score, resume_strengths, resume_weaknesses, missing_keywords, tailored_resume, tailored_cover, cover_score, cover_strengths, cover_weaknesses, what_changed.
-tailored_resume: full ATS-friendly plain text resume. tailored_cover: 250-350 word letter. what_changed: list of 4-8 short strings explaining edits."""
-
-
-def gemini_generate_browser(
-    resume: str, cover: str, jd: str, job_title: str, company: str
-):
-    from gemini_browser import browser_generate
-
-    text = browser_generate(_ats_prompt(resume, cover, jd, job_title, company))
-    m = re.search(r"\{.*\}", text, re.DOTALL)
-    if not m:
-        raise ValueError("Gemini browser returned non-JSON")
-    return json.loads(m.group(0))
-
-
 def to_docx(title: str, body: str) -> bytes:
     from docx import Document
 

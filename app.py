@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 import ats_engine as eng
 
@@ -32,7 +31,7 @@ CSS = """
 st.markdown(CSS, unsafe_allow_html=True)
 st.markdown(
     "<div class='hero'><h1>◎ ATS Coach AI</h1>"
-    "<p>Applicant Tracking Systems reject ~75% of resumes before a human sees them. Upload your resume, add any job description (paste text or job-page URL), optionally add your cover letter — get a detailed ATS diagnosis with scores, evidence, and tailored documents.</p>"
+    "<p>Applicant Tracking Systems reject ~75% of resumes before a human sees them. Upload your resume, paste any job description, optionally add your cover letter — get a detailed ATS diagnosis with scores, evidence, and tailored documents.</p>"
     "<span class='badge'>No login needed</span><span class='badge'>Gemini API — no browser</span><span class='badge'>Private — files never stored</span></div>",
     unsafe_allow_html=True,
 )
@@ -47,18 +46,12 @@ with st.sidebar:
     st.write(
         "Keyword match 55% · Skill coverage 15% · Formatting/ATS 15% · Impact evidence 15%. Cover: relevance 60% · structure 20% · brevity 20%."
     )
-    with st.expander("How do I share this with anyone?"):
-        st.write(
-            "Push `ats-coach/` to GitHub, deploy at share.streamlit.io pointing to `ats-coach/app.py`, add `GEMINI_API_KEY` in Secrets. Share that public URL — it works on any router or network. `localhost` links only work on your own machine."
-        )
-    with st.expander("Which engine runs first?"):
-        st.write(
-            "Headless Gemini browser first (fresh profile, no login; reload then close/reopen if it hangs), then Gemini API key from Secrets, then the built-in rule engine. For public job pages, use the JD-from-URL fetcher below."
-        )
+    st.caption(
+        "Powered by the Gemini API (key in Secrets) with a built-in rule engine as fallback."
+    )
 
 left, right = st.columns([1, 1.2])
 with left:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.subheader("Step 1 — Your documents")
     st.caption(
         "What to upload: a text-based PDF/DOCX resume (1-2 pages, single column). Cover letter is optional — if skipped, one is still generated for you."
@@ -71,39 +64,15 @@ with left:
     )
     job_title = st.text_input("Job title", placeholder="e.g. AI Engineering Intern")
     company = st.text_input("Company", placeholder="e.g. Acme Corp")
-    st.markdown("</div>", unsafe_allow_html=True)
 with right:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.subheader("Step 2 — Target job")
-    st.caption(
-        "Option A: paste the full JD. Option B: paste a public job-page URL (headless fetch, no login) and click Fetch."
-    )
-    jd_url = st.text_input(
-        "Job-page URL (optional)", placeholder="https://company.com/careers/role-123"
-    )
-    if st.button("Fetch JD from URL"):
-        if not jd_url.strip():
-            st.error("Paste a job URL first.")
-        else:
-            try:
-                with st.spinner("Fetching public job page (no login)..."):
-                    fetched = eng.fetch_jd_from_url(jd_url)
-                st.session_state["jd_text"] = fetched
-                st.success(
-                    f"Fetched {len(fetched)} characters. Review below before analyzing."
-                )
-            except Exception as e:
-                st.error(
-                    f"Could not fetch that URL ({e}). Paste the JD text manually instead."
-                )
+    st.caption("Paste the full job description below.")
     _jd_raw = st.text_area(
         "Job description *",
         height=280,
         placeholder="Paste the full job description here...",
-        value=st.session_state.get("jd_text", ""),
     )
     jd: str = _jd_raw or ""
-    st.markdown("</div>", unsafe_allow_html=True)
 
 go = st.button(
     "Analyze & Tailor My Application", type="primary", use_container_width=True
@@ -121,28 +90,17 @@ if go:
         )
         st.stop()
     ai_data = None
-    source = "rule engine"
-    try:
-        with st.spinner("Trying headless Gemini browser (no login)..."):
-            ai_data = eng.gemini_generate_browser(
-                resume_text, cover_text, jd, job_title, company
-            )
-            source = "headless browser"
-    except Exception as e:
-        st.info(f"Headless browser unavailable ({e}). Trying Gemini API...")
-        if eng.gemini_key():
-            try:
-                with st.spinner("Gemini API is scoring and tailoring..."):
-                    ai_data = eng.gemini_generate(
-                        resume_text, cover_text, jd, job_title, company
-                    )
-                    source = "Gemini API"
-            except Exception as e2:
-                st.warning(f"Gemini API unavailable ({e2}). Used rule engine.")
-        else:
-            st.warning("No Gemini API key in Secrets. Used rule engine.")
-    if ai_data:
-        st.success(f"Tailored with {source}.")
+    if eng.gemini_key():
+        try:
+            with st.spinner("Gemini API is scoring and tailoring..."):
+                ai_data = eng.gemini_generate(
+                    resume_text, cover_text, jd, job_title, company
+                )
+            st.success("Tailored with Gemini API.")
+        except Exception as e:
+            st.warning(f"Gemini API unavailable ({e}). Used rule engine.")
+    else:
+        st.info("No Gemini API key in Secrets. Used rule engine.")
     if ai_data:
         r = {
             "score": int(ai_data.get("resume_score", 0)),
@@ -188,7 +146,6 @@ if go:
     )
     d1, d2, d3 = st.columns(3)
     with d1:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.write("**Resume score**")
         st.markdown(
             f"<p class='score-big'>{r['score']}/100</p>", unsafe_allow_html=True
@@ -205,9 +162,7 @@ if go:
             st.caption(
                 f"Contact check: {'email found' if s.get('has_email') else 'no email found'} · {'links found' if s.get('has_links') else 'no LinkedIn/GitHub found'} · {s.get('sections', 0)}/4 standard sections"
             )
-        st.markdown("</div>", unsafe_allow_html=True)
     with d2:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.write("**Cover-letter score**")
         if cover_text:
             st.markdown(
@@ -226,9 +181,7 @@ if go:
             st.info(
                 "No cover uploaded — a tailored cover letter was still generated for you in the Tailored documents tab."
             )
-        st.markdown("</div>", unsafe_allow_html=True)
     with d3:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.write("**Resume breakdown (why this score)**")
         for k, v in (r.get("breakdown") or {}).items():
             st.write(f"{k}: {v}/100")
@@ -239,7 +192,6 @@ if go:
         st.caption(
             "Keyword match: share of JD terms found. Skill coverage: known tech skills. Formatting: length, bullets, sections, contact. Impact: numbers + action verbs."
         )
-        st.markdown("</div>", unsafe_allow_html=True)
 
     t1, t2, t3, t4, t5 = st.tabs(
         [
