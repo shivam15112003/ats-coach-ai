@@ -5,27 +5,27 @@ st.set_page_config(page_title="ATS Coach AI", page_icon="◎", layout="wide")
 
 CSS = """
 <style>
-.hero { background: linear-gradient(135deg,#0f172a,#1e3a8a 60%,#2563eb); border-radius:16px; padding:28px 32px; color:#fff; margin-bottom:18px; }
-.hero h1 { margin:0; font-size:2rem; }
-.hero p { margin:6px 0 0; opacity:.88; }
-.badge { display:inline-block; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.25); padding:3px 10px; border-radius:999px; font-size:.75rem; margin-right:6px; }
-.card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:18px 20px; box-shadow:0 1px 4px rgba(15,23,42,.06); margin-bottom:14px; }
-.score-big { font-size:2.6rem; font-weight:800; margin:0; }
-.grade { display:inline-block; background:#eff6ff; color:#1d4ed8; border-radius:999px; padding:4px 12px; font-size:.8rem; font-weight:600; }
-.bar { background:#eef2ff; border-radius:999px; height:10px; overflow:hidden; margin:4px 0 10px; }
+.hero { background: linear-gradient(135deg,#020617,#0f2a5c 60%,#1d4ed8); border:1px solid #1e3a8a; border-radius:16px; padding:28px 32px; color:#f8fafc; margin-bottom:18px; }
+.hero h1 { margin:0; font-size:2rem; color:#fff; }
+.hero p { margin:6px 0 0; opacity:.85; }
+.badge { display:inline-block; background:rgba(147,197,253,.12); border:1px solid rgba(147,197,253,.35); color:#bfdbfe; padding:3px 10px; border-radius:999px; font-size:.75rem; margin-right:6px; }
+.score-big { font-size:2.6rem; font-weight:800; margin:0; color:#f8fafc; }
+.grade { display:inline-block; background:rgba(96,165,250,.15); color:#93c5fd; border-radius:999px; padding:4px 12px; font-size:.8rem; font-weight:600; }
+.bar { background:#1e293b; border-radius:999px; height:10px; overflow:hidden; margin:4px 0 10px; }
 .bar > div { height:100%; background:linear-gradient(90deg,#2563eb,#60a5fa); border-radius:999px; }
-.chip { display:inline-block; background:#f1f5f9; border:1px solid #e2e8f0; padding:3px 10px; border-radius:999px; font-size:.78rem; margin:2px 4px 2px 0; }
-.chip.miss { background:#fef2f2; border-color:#fecaca; }
-.strength { background:#f0fdf4; border-left:4px solid #22c55e; padding:8px 12px; border-radius:8px; margin:6px 0; }
-.weak { background:#fffbeb; border-left:4px solid #f59e0b; padding:8px 12px; border-radius:8px; margin:6px 0; }
-.tip { background:#eff6ff; border-left:4px solid #2563eb; padding:8px 12px; border-radius:8px; margin:6px 0; }
+.chip { display:inline-block; background:#141f38; border:1px solid #2b3b5e; color:#dbe7ff; padding:3px 10px; border-radius:999px; font-size:.78rem; margin:2px 4px 2px 0; }
+.chip.miss { background:rgba(248,113,113,.12); border-color:#7f1d1d; color:#fca5a5; }
+.strength { background:rgba(34,197,94,.1); border-left:4px solid #22c55e; color:#d1fae5; padding:8px 12px; border-radius:8px; margin:6px 0; }
+.weak { background:rgba(245,158,11,.1); border-left:4px solid #f59e0b; color:#fef3c7; padding:8px 12px; border-radius:8px; margin:6px 0; }
+.tip { background:rgba(96,165,250,.1); border-left:4px solid #60a5fa; color:#dbeafe; padding:8px 12px; border-radius:8px; margin:6px 0; }
 .footer { text-align:center; color:#64748b; font-size:.8rem; margin-top:22px; }
-.stButton > button { background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff; border:none; border-radius:12px; padding:14px 24px; font-size:1.05rem; font-weight:700; box-shadow:0 4px 14px rgba(37,99,235,.35); transition:transform .12s ease, box-shadow .12s ease; }
-.stButton > button:hover { transform:translateY(-1px); box-shadow:0 8px 22px rgba(37,99,235,.45); color:#fff; }
-.stDownloadButton > button { background:#fff; color:#1d4ed8; border:1.5px solid #2563eb; border-radius:10px; padding:9px 16px; font-weight:600; transition:background .12s ease; }
-.stDownloadButton > button:hover { background:#eff6ff; color:#1e40af; border-color:#1d4ed8; }
-.stTabs [data-baseweb="tab"] { font-weight:600; border-radius:8px 8px 0 0; }
-.stTabs [aria-selected="true"] { color:#1d4ed8; }
+.stButton > button { background:linear-gradient(135deg,#1e40af,#3b82f6); color:#fff; border:none; border-radius:12px; padding:14px 24px; font-size:1.05rem; font-weight:700; box-shadow:0 4px 14px rgba(59,130,246,.35); transition:transform .12s ease, box-shadow .12s ease; }
+.stButton > button:hover { transform:translateY(-1px); box-shadow:0 8px 22px rgba(59,130,246,.5); color:#fff; }
+.stDownloadButton > button { background:#101b33; color:#93c5fd; border:1.5px solid #3b82f6; border-radius:10px; padding:9px 16px; font-weight:600; transition:background .12s ease; }
+.stDownloadButton > button:hover { background:#16254a; color:#bfdbfe; border-color:#60a5fa; }
+.stTabs [data-baseweb="tab"] { font-weight:600; border-radius:8px 8px 0 0; color:#94a3b8; }
+.stTabs [aria-selected="true"] { color:#93c5fd; }
+a { color:#93c5fd; }
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -127,6 +127,18 @@ if go:
         tailored_resume = ai_data.get("tailored_resume", "")
         tailored_cover = ai_data.get("tailored_cover", "")
         changed = ai_data.get("what_changed", [])
+        if not cover_text.strip():
+            c = {
+                "score": 0,
+                "grade": "Not uploaded",
+                "strengths": [],
+                "weaknesses": [],
+                "suggestions": [],
+                "matched": [],
+                "missing": [],
+                "breakdown": {},
+                "stats": {},
+            }
     else:
         r = eng.score_resume(resume_text, jd)
         c = eng.analyze_cover(cover_text, jd)
@@ -139,6 +151,25 @@ if go:
             "Restructured into single-column ATS-safe headings: Summary, Skills, Experience, Education.",
             f"Rule-engine detail: keyword match {r['breakdown'].get('Keyword match', 0)}, formatting {r['breakdown'].get('Formatting / ATS', 0)}, impact {r['breakdown'].get('Impact evidence', 0)}.",
         ]
+
+    with st.spinner("Scoring tailored documents..."):
+        r_after = (
+            eng.score_resume(tailored_resume, jd) if tailored_resume.strip() else None
+        )
+        c_after = (
+            eng.analyze_cover(tailored_cover, jd) if tailored_cover.strip() else None
+        )
+    if ai_data:
+        r_base_score = eng.score_resume(resume_text, jd)["score"]
+    else:
+        r_base_score = r["score"]
+    if cover_text.strip():
+        if ai_data:
+            c_base_score = eng.analyze_cover(cover_text, jd)["score"]
+        else:
+            c_base_score = c["score"]
+    else:
+        c_base_score = None
 
     st.subheader("Match dashboard — what the numbers mean")
     st.caption(
@@ -193,6 +224,33 @@ if go:
             "Keyword match: share of JD terms found. Skill coverage: known tech skills. Formatting: length, bullets, sections, contact. Impact: numbers + action verbs."
         )
 
+    st.subheader("Improvement — before vs after tailoring")
+    st.caption(
+        "Tailored documents are re-scored with the rule engine so before/after use the same scale."
+    )
+    i1, i2 = st.columns(2)
+    with i1:
+        if r_after:
+            st.metric(
+                "Tailored resume score",
+                f"{r_after['score']}/100",
+                delta=f"{r_after['score'] - r_base_score:+d} vs original",
+            )
+    with i2:
+        if c_after:
+            if c_base_score is None:
+                st.metric(
+                    "Tailored cover-letter score",
+                    f"{c_after['score']}/100",
+                    delta="new (no original uploaded)",
+                )
+            else:
+                st.metric(
+                    "Tailored cover-letter score",
+                    f"{c_after['score']}/100",
+                    delta=f"{c_after['score'] - c_base_score:+d} vs original",
+                )
+
     t1, t2, t3, t4, t5 = st.tabs(
         [
             "Resume analysis",
@@ -237,34 +295,44 @@ if go:
                 "Day 7: have a friend read it for 30 seconds — whatever they miss, clarify."
             )
     with t2:
-        if not cover_text:
+        if not cover_text.strip():
             st.info(
-                "You uploaded only a resume — review your generated cover letter in the Tailored documents tab."
+                "No cover letter uploaded, so there is nothing to analyze here. "
+                "Your generated cover letter (with its own score) is in the Tailored documents tab."
             )
-        c1, c2 = st.columns(2)
-        with c1:
-            st.subheader("Strengths")
-            for s in c["strengths"] or ["—"]:
-                st.markdown(f"<div class='strength'>{s}</div>", unsafe_allow_html=True)
-        with c2:
-            st.subheader("Gaps to fix")
-            for w in c["weaknesses"] or ["—"]:
-                st.markdown(f"<div class='weak'>{w}</div>", unsafe_allow_html=True)
-        if c.get("breakdown"):
-            st.subheader("Breakdown — relevance, structure, brevity")
-            for k, v in c["breakdown"].items():
-                st.write(f"{k}: {v}/100")
-                st.markdown(
-                    f"<div class='bar'><div style='width:{v}%'></div></div>",
-                    unsafe_allow_html=True,
+        else:
+            c1, c2 = st.columns(2)
+            with c1:
+                st.subheader("Strengths")
+                for s in c["strengths"] or ["—"]:
+                    st.markdown(
+                        f"<div class='strength'>{s}</div>", unsafe_allow_html=True
+                    )
+            with c2:
+                st.subheader("Gaps to fix")
+                for w in c["weaknesses"] or ["—"]:
+                    st.markdown(f"<div class='weak'>{w}</div>", unsafe_allow_html=True)
+            if c.get("breakdown"):
+                st.subheader("Breakdown — relevance, structure, brevity")
+                for k, v in c["breakdown"].items():
+                    st.write(f"{k}: {v}/100")
+                    st.markdown(
+                        f"<div class='bar'><div style='width:{v}%'></div></div>",
+                        unsafe_allow_html=True,
+                    )
+                st.caption(
+                    "Relevance: JD keywords echoed. Structure: greeting, fit/proof/close, sign-off. Brevity: 250-350 words scores highest."
                 )
-            st.caption(
-                "Relevance: JD keywords echoed. Structure: greeting, fit/proof/close, sign-off. Brevity: 250-350 words scores highest."
-            )
-        with st.expander("Anatomy of a strong cover letter"):
-            st.write("Para 1 (fit): role, company, your 2 strongest JD-matched skills.")
-            st.write("Para 2 (proof): one project with a metric that maps to the JD.")
-            st.write("Para 3 (close): why this team, call to action, contact details.")
+            with st.expander("Anatomy of a strong cover letter"):
+                st.write(
+                    "Para 1 (fit): role, company, your 2 strongest JD-matched skills."
+                )
+                st.write(
+                    "Para 2 (proof): one project with a metric that maps to the JD."
+                )
+                st.write(
+                    "Para 3 (close): why this team, call to action, contact details."
+                )
     with t3:
         st.subheader("Tailored resume (TXT + DOCX — no PDF by request)")
         st.caption(
@@ -295,6 +363,18 @@ if go:
             "tailored_cover_letter.docx",
         )
     with t4:
+        st.subheader("Score improvement")
+        if r_after:
+            st.write(
+                f"Resume: {r_base_score} → {r_after['score']} ({r_after['score'] - r_base_score:+d})"
+            )
+        if c_after:
+            if c_base_score is None:
+                st.write(f"Cover letter: new document, scored {c_after['score']}/100.")
+            else:
+                st.write(
+                    f"Cover letter: {c_base_score} → {c_after['score']} ({c_after['score'] - c_base_score:+d})"
+                )
         st.subheader("What changed and why")
         for ch in changed:
             st.markdown(f"<div class='tip'>{ch}</div>", unsafe_allow_html=True)
